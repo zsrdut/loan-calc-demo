@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>贷款月供试算器</title>
+  <meta name="description" content="输入贷款金额、年利率和期限，估算等额本息与等额本金的每月还款、总利息与逐月还款计划。" />
+  <link rel="stylesheet" href="./assets/styles.css" />
+</head>
+<body>
+  <header class="page-header">
+    <div class="page-header__inner">
+      <h1>贷款月供试算器</h1>
+      <p class="page-subtitle">输入贷款金额、年利率和期限，估算每月还款与利息总额。</p>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="card" aria-labelledby="form-title">
+      <h2 id="form-title">贷款信息</h2>
+      <form id="loan-form" novalidate>
+        <div class="field-grid">
+          <div class="field">
+            <label for="amount">贷款金额（元）</label>
+            <div class="input-wrap">
+              <input
+                id="amount"
+                name="amount"
+                type="text"
+                inputmode="decimal"
+                value="1000000"
+                autocomplete="off"
+                aria-describedby="amount-error amount-hint"
+              />
+              <span class="input-suffix" aria-hidden="true">元</span>
+            </div>
+            <p class="field-hint" id="amount-hint">最多两位小数，例如 1000000</p>
+            <p class="field-error" id="amount-error" hidden></p>
+          </div>
+
+          <div class="field">
+            <label for="rate">年利率（%）</label>
+            <div class="input-wrap">
+              <input
+                id="rate"
+                name="rate"
+                type="text"
+                inputmode="decimal"
+                value="4.2"
+                autocomplete="off"
+                aria-describedby="rate-error rate-hint"
+              />
+              <span class="input-suffix" aria-hidden="true">%</span>
+            </div>
+            <p class="field-hint" id="rate-hint">输入 4.2 表示年利率 4.2%，可为 0</p>
+            <p class="field-error" id="rate-error" hidden></p>
+          </div>
+
+          <div class="field">
+            <label for="months">贷款期限（期/月）</label>
+            <div class="input-wrap">
+              <input
+                id="months"
+                name="months"
+                type="text"
+                inputmode="numeric"
+                value="360"
+                autocomplete="off"
+                aria-describedby="months-error months-hint"
+              />
+              <span class="input-suffix" aria-hidden="true">期</span>
+            </div>
+            <p class="field-hint" id="months-hint">按整月输入，约 30 年</p>
+            <p class="field-error" id="months-error" hidden></p>
+          </div>
+        </div>
+
+        <fieldset class="method-fieldset">
+          <legend>还款方式</legend>
+          <div class="method-options">
+            <label class="method-option" data-method="equal-payment">
+              <input type="radio" name="method" value="equal-payment" checked />
+              <span class="method-option__body">
+                <span class="method-option__title">等额本息</span>
+                <span class="method-option__desc">每期月供固定，前期利息占比高</span>
+              </span>
+            </label>
+            <label class="method-option" data-method="equal-principal">
+              <input type="radio" name="method" value="equal-principal" />
+              <span class="method-option__body">
+                <span class="method-option__title">等额本金</span>
+                <span class="method-option__desc">每期本金固定，月供逐期递减</span>
+              </span>
+            </label>
+          </div>
+        </fieldset>
+
+        <div class="form-actions">
+          <button id="calculate" class="primary-button" type="submit">计算</button>
+          <p id="form-hint" class="form-hint" hidden>输入已修改，请重新计算</p>
+        </div>
+      </form>
+      <div id="form-errors" class="form-errors" role="alert" hidden></div>
+    </section>
+
+    <section id="result" class="result" aria-live="polite" hidden>
+      <div id="summary" class="summary-grid"></div>
+
+      <div class="table-card">
+        <div class="table-card__head">
+          <h2 id="schedule-title">逐月还款计划</h2>
+          <p id="table-caption-text" class="table-card__meta"></p>
+        </div>
+        <div class="table-wrap" tabindex="0" role="region" aria-labelledby="schedule-title" aria-label="逐月还款计划表，可横向滚动">
+          <table>
+            <caption id="table-caption" class="visually-hidden">逐月还款计划</caption>
+            <thead>
+              <tr>
+                <th scope="col">期次</th>
+                <th scope="col">月供（元）</th>
+                <th scope="col">本金（元）</th>
+                <th scope="col">利息（元）</th>
+                <th scope="col">剩余本金（元）</th>
+              </tr>
+            </thead>
+            <tbody id="schedule-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <details class="notes">
+      <summary>计算说明与免责声明</summary>
+      <div class="notes__body">
+        <p><strong>等额本息：</strong>每月月供 = 贷款本金 × 月利率 × (1 + 月利率)<sup>期数</sup> ÷ ((1 + 月利率)<sup>期数</sup> − 1)，其中月利率 = 年利率 ÷ 12。年利率为 0 时退化为“本金 ÷ 期数”。</p>
+        <p><strong>等额本金：</strong>每月本金 = 贷款本金 ÷ 期数，当月利息 = 剩余本金 × 月利率，月供逐期递减，总利息 = 贷款本金 × 月利率 × (期数 + 1) ÷ 2。</p>
+        <p>结果统一四舍五入到分。为满足“本金合计等于贷款金额、利息合计等于总利息”，逐月计划表会对分位尾差做 1 分钱级别的校正，个别期次的月供可能与标准月供相差 0.01 元。</p>
+        <p class="notes__disclaimer">本工具结果仅供参考，不构成贷款承诺；实际还款金额以贷款合同及银行核算为准。</p>
+      </div>
+    </details>
+  </main>
+
+  <footer class="page-footer">
+    <p>贷款月供试算器 · 纯前端计算，不上传任何数据</p>
+  </footer>
+
+  <script type="module" src="./assets/app.mjs"></script>
+</body>
+</html>
